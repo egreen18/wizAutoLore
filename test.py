@@ -1,8 +1,8 @@
 import tools
 import pyautogui as auto
+import time
 
+time.sleep(0.5)
 auto.click()
-os_res = tools.osResGen()
-templates = tools.loadTemplates(os_res)
-coords = tools.loadCoords(os_res)
-tools.playMatch(templates, coords)
+runtime = 100000
+tools.autoLore(runtime)

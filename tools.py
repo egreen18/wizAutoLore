@@ -6,6 +6,7 @@ import os.path as os
 import numpy as np
 import time
 
+
 def mssMon(shape):
     # Takes a resolution in the form of a 1,4 list and prepares it for input into mss screenshot function
     mon = {"top": shape[1], "left": shape[0], "width": shape[2]-shape[0], "height": shape[3]-shape[1]}
@@ -59,7 +60,7 @@ def loadCoords(os_res):
             '0': (1110, 800),
             '1': (800, 800),
             '2': (500, 800),
-            '3': (180, 500),
+            '3': (180, 800),
 
         }
         enemy_boxes = {
@@ -77,7 +78,10 @@ def loadCoords(os_res):
 
         }
         coords = {
-            'round': (440, 400, 510, 500),
+            'in_match': (440, 400, 1030, 530),
+            'team_up': (725, 790),
+            'team_go': (710, 630),
+            'pass': (530, 540),
             'card_boxes': card_boxes,
             'card_points': card_points,
             'player_boxes': player_boxes,
@@ -92,15 +96,17 @@ def loadTemplates(os_res):
     # This function loads arrow templates into the workspace
     # Loading templates
     templates = {
-        'blade':    cv2.imread(os.join('templates', os_res, 'blade_tpl.png')),
-        'blade_e':  cv2.imread(os.join('templates', os_res, 'blade_e_tpl.png')),
-        'hit':      cv2.imread(os.join('templates', os_res, 'hit_tpl.png')),
-        'hit_e':    cv2.imread(os.join('templates', os_res, 'hit_e_tpl.png')),
-        'trap':     cv2.imread(os.join('templates', os_res, 'trap_tpl.png')),
-        'trap_e':   cv2.imread(os.join('templates', os_res, 'trap_e_tpl.png')),
-        'round':    cv2.imread(os.join('templates', os_res, 'round_tpl.png')),
-        'player':    cv2.imread(os.join('templates', os_res, 'player_tpl.png')),
-        'loremaster': cv2.imread(os.join('templates', os_res, 'loremaster_tpl.png')),
+        'blade':        cv2.imread(os.join('templates', os_res, 'blade_tpl.png')),
+        'blade_e':      cv2.imread(os.join('templates', os_res, 'blade_e_tpl.png')),
+        'hit':          cv2.imread(os.join('templates', os_res, 'hit_tpl.png')),
+        'hit_e':        cv2.imread(os.join('templates', os_res, 'hit_e_tpl.png')),
+        'trap':         cv2.imread(os.join('templates', os_res, 'trap_tpl.png')),
+        'trap_e':       cv2.imread(os.join('templates', os_res, 'trap_e_tpl.png')),
+        'in_match':     cv2.imread(os.join('templates', os_res, 'in_match_tpl.png')),
+        'player':       cv2.imread(os.join('templates', os_res, 'player_tpl.png')),
+        'loremaster':   cv2.imread(os.join('templates', os_res, 'loremaster_tpl.png')),
+        'in_client':    cv2.imread(os.join('templates', os_res, 'in_client_tpl.png')),
+        'team_up':      cv2.imread(os.join('templates', os_res, 'team_up_tpl.png')),
     }
 
     # Converting to grayscale for cv2 processing
@@ -128,12 +134,17 @@ def tplComp(image, tpl):
         return 0
 
 
-def checkLocation(loc, tpl):
+def checkLocation(tpl, loc=0):
     # Checks a location on the screen for a template
+    # If no location is given, checks entire screen
     # Provide location (loc) in the upper left lower right coordinate box format
     # Pulling screenshot
-    with mss.mss() as sct:
-        pic = sct.grab(mssMon(loc))
+    if not loc:
+        with mss.mss() as sct:
+            pic = sct.grab(sct.monitors[1])
+    else:
+        with mss.mss() as sct:
+            pic = sct.grab(mssMon(loc))
 
     # Converting to grayscale for cv2 processing
     pic = cv2.cvtColor(np.array(pic), cv2.COLOR_RGB2GRAY)
@@ -147,7 +158,7 @@ def checkLocation(loc, tpl):
     return identified
 
 
-def jiggle():
+def jiggleMouse():
     # Jiggles mouse to reactivate some buttons
     pos = auto.position()
 
@@ -156,10 +167,19 @@ def jiggle():
     auto.moveTo((pos[0], pos[1]))
 
 
+def jigglePlayer(dist):
+    # Jiggles player position to reactivate some buttons
+    # Range indicates how long the buttons will be held down
+    with auto.hold('s'):
+        time.sleep(1.5*dist)
+    with auto.hold('w'):
+        time.sleep(dist)
+
+
 def button(coords):
     auto.moveTo(coords)
     time.sleep(0.1)
-    jiggle()
+    jiggleMouse()
     auto.click()
     time.sleep(0.1)
 
@@ -198,10 +218,13 @@ def selectCard(hand, coords, card):
 
 def waitRound(tpl, coords):
     # Waits until a round has finished animating
-    print('Waiting for round to begin...')
-    while not checkLocation(coords['round'], tpl['round']):
-        pass
+    # Returns positive if the round ends because the match is over
+    # Returns null if the round ends because a new round has begun
+    while not checkLocation(tpl['in_match'], coords['in_match']):
+        if checkLocation(tpl['in_client']):
+            return 1
     time.sleep(0.5) # Waiting some time after round begins to let everything initialize in game
+    return 0
 
 
 def identifyPlayer(tpl, coords):
@@ -217,7 +240,7 @@ def identifyPlayer(tpl, coords):
 
             # Checking to see if player is in that position
             if tplComp(pic, tpl['player']):
-                return coords['player_points'][position]
+                return coords['player_points'][position], position
     return 0
 
 
@@ -279,8 +302,10 @@ def cleanHand(hand, tpl, coords):
     return hand
 
 
-def castSpell(hand, spell, coords, target):
+def castSpell(hand, spell, coords, tpl, target):
     # Casts a spell (string) from the hand (list) at the target (screen coordinates)
+    # Starts by cleaning hand
+    hand = cleanHand(hand, tpl, coords)
     print("Casting {}".format(spell))
     button(selectCard(hand, coords, spell))
     # Hit-all spells are target-less
@@ -288,7 +313,7 @@ def castSpell(hand, spell, coords, target):
         button(target)
     # Update hand
     hand.remove(spell)
-    return
+    return hand
 
 
 def playMatch(tpl, coords):
@@ -296,24 +321,96 @@ def playMatch(tpl, coords):
     waitRound(tpl, coords)
 
     # Identifying unit positions
-    player = identifyPlayer(tpl, coords)
+    player, position = identifyPlayer(tpl, coords)
     boss = identifyBoss(tpl, coords)
 
     # Analyzing hand
     hand = checkHand(tpl, coords)
 
-    # Cleaning hand
-    hand = cleanHand(hand, tpl, coords)
-
     # Cast enchanted blade
-    castSpell(hand, 'e_blade', coords, player)
+    hand = castSpell(hand, 'e_blade', coords, tpl, player)
     # Wait for round
-    waitRound(tpl, coords)
+    if waitRound(tpl, coords):
+        leaveMatch(position)
+        return
 
     # Cast enchanted hit
-    castSpell(hand, 'hit', coords, 0)
-    waitRound(tpl, coords)
+    hand = castSpell(hand, 'e_hit', coords, tpl, 0)
+    # Wait for round
+    if waitRound(tpl, coords):
+        leaveMatch(position)
+        return
 
-    # Wait for end of battle
+    # Cast blade
+    hand = castSpell(hand, 'blade', coords, tpl, player)
+    # Wait for round
+    if waitRound(tpl, coords):
+        leaveMatch(position)
+        return
 
+    # Cast enchanted hit
+    hand = castSpell(hand, 'e_hit', coords, tpl, 0)
+    # Wait for round
+    if waitRound(tpl, coords):
+        leaveMatch(position)
+        return
+
+    leaveMatch(position)
     return
+
+
+def startMatch(tpl, coords):
+    dist = 0.5
+    while not checkLocation(tpl['team_up']):
+        jigglePlayer(dist)
+        dist += 0.02  # Increasing the intensity of the player jiggle to try and catch the team up button on screen
+        time.sleep(dist)
+
+    # Starting team up queue
+    button(coords['team_up'])
+    button(coords['team_go'])
+    with auto.hold('w'):
+        while not checkLocation(tpl['in_match'],coords['in_match']):
+            pass
+    return
+
+
+def leaveMatch(position):
+    if position == '0':
+        with auto.hold('d'):
+            time.sleep(0.5)
+        with auto.hold('s'):
+            time.sleep(2.5)
+    elif position == '1':
+        with auto.hold('d'):
+            time.sleep(0.2)
+        with auto.hold('s'):
+            time.sleep(2.5)
+    elif position == '2':
+        with auto.hold('a'):
+            time.sleep(0.2)
+        with auto.hold('s'):
+            time.sleep(2.5)
+    elif position == '3':
+        with auto.hold('a'):
+            time.sleep(0.5)
+        with auto.hold('s'):
+            time.sleep(2.5)
+
+
+def autoLore(runtime):
+    # Automatically runs loremaster battles for a given runtime in seconds
+
+    # Initialization
+    now = time.time()
+    os_res = osResGen()
+    tpl = loadTemplates(os_res)
+    coords = loadCoords(os_res)
+
+    while time.time() < now+runtime:
+        # Waiting to make sure that client is open
+        while not checkLocation(tpl['in_client']):
+            pass
+        startMatch(tpl, coords)
+        playMatch(tpl, coords)
+
