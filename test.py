@@ -1,8 +1,6 @@
-import tools
-import pyautogui as auto
-import time
+from tools import *
 
-time.sleep(0.5)
+time.sleep(2)
 auto.click()
 runtime = 100000
-tools.autoLore(runtime)
+autoLore(runtime)

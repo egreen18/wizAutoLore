@@ -79,6 +79,9 @@ def loadCoords(os_res):
 
         }
         coords = {
+            'health': (39, 718, 85, 734),
+            'mana': (104, 758, 135, 768),
+            'commons': (1214, 770),
             'in_match': (440, 400, 1030, 530),
             'team_up': (725, 790),
             'team_go': (710, 630),
@@ -275,6 +278,52 @@ def identifyBoss(tpl, coords):
     return 0
 
 
+def getMana(tpl, coords):
+    # Teleporting to commons to get mana orbs
+    button(coords['commons'])
+
+    # Waiting for client to load after teleporting
+    while checkLocation(tpl['in_client']):
+        pass
+    while not checkLocation(tpl['in_client']):
+        pass
+
+    # Running around commons
+    while not checkMana(coords):
+        with auto.hold('a'):
+            with auto.hold('w'):
+                time.sleep(5)
+
+    # Returning to loremaster
+    teleport(tpl, coords)
+    return
+
+
+def checkMana(coords):
+    with mss.mss() as sct:
+        pic = sct.grab(mssMon(coords['mana']))
+    blue = np.array(pic)[:, :, 0]
+
+    if np.average(blue) < 210:
+        return 0
+
+    return 1
+
+
+def checkHealth(coords):
+    with mss.mss() as sct:
+        pic = sct.grab(mssMon(coords['health']))
+    red = np.array(pic)[:, :, 2]
+
+    while np.average(red) < 200:
+        time.sleep(5)
+        with mss.mss() as sct:
+            pic = sct.grab(mssMon(coords['health']))
+        red = np.array(pic)[:, :, 2]
+
+    return
+
+
 def cleanHand(hand, tpl, coords):
     # Cleans hand by applying all enchantments
     # If a trap enchantment is present
@@ -380,8 +429,10 @@ def playMatch(tpl, coords):
         leaveMatch(position)
         return
 
-    # Will pass until game is over
+    # Will pass until game is overs
     while not checkLocation(tpl['in_client']):
+        waitRound(tpl, coords)
+        passRound(coords)
         pass
 
     leaveMatch(position)
@@ -457,6 +508,9 @@ def autoLore(runtime):
         # Waiting to make sure that client is open
         while not checkLocation(tpl['in_client']):
             pass
+        checkHealth(coords)
+        if not checkMana(coords):
+            getMana(tpl, coords)
         startMatch(tpl, coords)
         playMatch(tpl, coords)
         with open('runCount.pkl', 'rb') as file:
