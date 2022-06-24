@@ -2,40 +2,20 @@ from tools import *
 from initialize import *
 
 
-def cardCount(tpl, coords):
-    # Counts the number of cards in the hand by analyzing the position of the top deck card
-    start = coords['card_boxes']['start']
-    step = coords['card_boxes']['int']
-    for slot in range(8):
-        # Defining coordinates of the slot
-        box = (start[0]+step*slot/2, start[1], start[2]+step*slot/2, start[3])
-
-        # Screenshotting
-        with mss.mss() as sct:
-            pic = sct.grab(mssMon(box))
-
-        # Converting to grayscale for cv2 processing
-        pic = cv2.cvtColor(np.array(pic), cv2.COLOR_RGB2GRAY)
-
-        # Checking for the deck card
-        if tplComp(pic, tpl['in_match']):
-            # Returning the number of cards in the deck
-            return 7-slot
-
-
-def checkHand(tpl):
-    # This fucntion constructs a hand containing the coordinates and identity of all cards pulled
+def checkHand(tpl, coords):
+    # This function constructs a hand containing the coordinates and identity of all cards pulled
     # Predefining card dictionary
     hand = {}
     with mss.mss() as sct:
-        pic = sct.grap(mssMon(tpl['in_match']))
+        pic = sct.grab(mssMon(coords['in_match']))
     
-    pic = cv2.cvtColor(np.arrary(pic), cv2.COLOR_RGB2GRAY)
+    pic = cv2.cvtColor(np.array(pic), cv2.COLOR_RGB2GRAY)
 
     # Identifying the card
     for card in tpl['cards'].keys():
-        coords = tplLocate(pic, tpl['cards'][card])
-        hand[card] = coords
+        points = tplLocate(pic, tpl['cards'][card])
+        if points:
+            hand[card] = points+np.array(coords['in_match'][:2])
     print(hand)
     return hand
 
@@ -85,7 +65,7 @@ def identifyBoss(tpl, coords):
     return 0
 
 
-def cleanHand(hand, tpl):
+def cleanHand(hand, tpl, coords):
     # Cleans hand by applying all enchantments
     # If a trap enchantment is present
     while 'trap_e' in hand.keys():
@@ -95,7 +75,7 @@ def cleanHand(hand, tpl):
             button(hand['trap_e'][0])
             button(hand['trap'][0])
             # Update hand
-            hand = checkHand(tpl)
+            hand = checkHand(tpl, coords)
         else:
             break
 
@@ -106,7 +86,7 @@ def cleanHand(hand, tpl):
             button(hand['blade_e'][0])
             button(hand['blade'][0])
             # Update hand
-            hand = checkHand(tpl)
+            hand = checkHand(tpl, coords)
         else:
             break
 
@@ -117,17 +97,17 @@ def cleanHand(hand, tpl):
             button(hand['hit_e'][0])
             button(hand['hit'][0])
             # Update hand
-            hand = checkHand(tpl)
+            hand = checkHand(tpl, coords)
         else:
             break
     return hand
 
 
-def castSpell(tpl, spell, target):
+def castSpell(tpl, spell, target, coords):
     # Casts a spell (string) from the hand (list) at the target (screen coordinates)
     # Starts by checking and cleaning hand
-    hand = checkHand(tpl)
-    hand = cleanHand(hand, tpl)
+    hand = checkHand(tpl, coords)
+    hand = cleanHand(hand, tpl, coords)
 
     # Selecting spell
     print("Casting {}".format(spell))
@@ -153,7 +133,7 @@ def playMatch(tpl, coords, spell_logic):
     }
 
     for spell in spell_logic:
-        castSpell(tpl, spell[0], target[spell[1]])
+        castSpell(tpl, spell[0], target[spell[1]], coords)
         if waitRound(tpl, coords):
             leaveMatch(position)
             return
@@ -173,7 +153,7 @@ def startMatch(tpl, coords):
     button(coords['team_up'])
     button(coords['team_go'])
     with auto.hold('w'):
-        while not checkLocation(tpl['in_match'],coords['in_match']):
+        while not checkLocation(tpl['in_match'], coords['in_match']):
             pass
     return
 

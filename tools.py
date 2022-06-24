@@ -31,7 +31,7 @@ def tplComp(image, tpl):
 
 def tplLocate(image, tpl):
     # This function returns the center coordinates of the location of a template identified in an image
-    # Can return a list of coordinates if a tempalte appears multiple times
+    # Can return a list of coordinates if a template appears multiple times
     res = cv2.matchTemplate(image, tpl, cv2.TM_CCOEFF_NORMED)
 
     # Specify a threshold
@@ -42,7 +42,8 @@ def tplLocate(image, tpl):
 
     coord = []
     for found in loc:
-        coord.append(np.average(found))
+        if found.any():
+            coord.append(np.average(found))
 
     return coord
 
@@ -52,12 +53,12 @@ def checkLocation(tpl, loc=0):
     # If no location is given, checks entire screen
     # Provide location (loc) in the upper left lower right coordinate box format
     # Pulling screenshot
-    if not loc:
-        with mss.mss() as sct:
-            pic = sct.grab(sct.monitors[1])
-    else:
+    if loc:
         with mss.mss() as sct:
             pic = sct.grab(mssMon(loc))
+    else:
+        with mss.mss() as sct:
+            pic = sct.grab(sct.monitors[1])
 
     # Converting to grayscale for cv2 processing
     pic = cv2.cvtColor(np.array(pic), cv2.COLOR_RGB2GRAY)
