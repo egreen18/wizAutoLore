@@ -83,6 +83,8 @@ def loadCoords(os_res):
             'team_up': (725, 790),
             'team_go': (710, 630),
             'pass': (530, 540),
+            'teleport': (1295, 770),
+            'mark': (1268, 786),
             'card_boxes': card_boxes,
             'card_points': card_points,
             'player_boxes': player_boxes,
@@ -96,13 +98,16 @@ def loadCoords(os_res):
 def loadTemplates(os_res):
     # This function loads arrow templates into the workspace
     # Loading templates
-    templates = {
+    cards = {
         'blade':        cv2.imread(os.join('templates', os_res, 'blade_tpl.png')),
         'blade_e':      cv2.imread(os.join('templates', os_res, 'blade_e_tpl.png')),
         'hit':          cv2.imread(os.join('templates', os_res, 'hit_tpl.png')),
         'hit_e':        cv2.imread(os.join('templates', os_res, 'hit_e_tpl.png')),
         'trap':         cv2.imread(os.join('templates', os_res, 'trap_tpl.png')),
         'trap_e':       cv2.imread(os.join('templates', os_res, 'trap_e_tpl.png')),
+    }
+    templates = {
+        'cards':        cards,
         'in_match':     cv2.imread(os.join('templates', os_res, 'in_match_tpl.png')),
         'player':       cv2.imread(os.join('templates', os_res, 'player_tpl.png')),
         'loremaster':   cv2.imread(os.join('templates', os_res, 'loremaster_tpl.png')),
@@ -111,8 +116,13 @@ def loadTemplates(os_res):
     }
 
     # Converting to grayscale for cv2 processing
+    # Converting to grayscale for cv2 processing
     for tpl in templates.keys():
-        templates[tpl] = cv2.cvtColor(np.array(templates[tpl]), cv2.COLOR_BGR2GRAY)
+        if tpl == 'cards':
+            for card in templates['cards'].keys():
+                templates['cards'][card] = cv2.cvtColor(np.array(templates['cards'][card]), cv2.COLOR_BGR2GRAY)
+        else:
+            templates[tpl] = cv2.cvtColor(np.array(templates[tpl]), cv2.COLOR_BGR2GRAY)
 
     return templates
 
@@ -198,8 +208,8 @@ def checkHand(tpl, coords):
         pic = cv2.cvtColor(np.array(pic), cv2.COLOR_RGB2GRAY)
 
         # Identifying the card
-        for card in tpl.keys():
-            if tplComp(pic, tpl[card]):
+        for card in tpl['cards'].keys():
+            if tplComp(pic, tpl['cards'][card]):
                 hand.append(card)
                 break
 
@@ -363,12 +373,29 @@ def playMatch(tpl, coords):
     return
 
 
+def teleport(tpl, coords):
+    button(coords['teleport'])
+    # Waiting for client to load after teleporting
+    while checkLocation(tpl['in_client']):
+        pass
+    while not checkLocation(tpl['in_client']):
+        pass
+    time.sleep(2)
+    # Resetting mark
+    button(coords['mark'])
+    return
+
+
 def startMatch(tpl, coords):
     dist = 0.5
     while not checkLocation(tpl['team_up']):
         jigglePlayer(dist)
         dist += 0.02  # Increasing the intensity of the player jiggle to try and catch the team up button on screen
         time.sleep(dist)
+        if dist > 0.6:
+            # If something is stopping the player from being in the right location, use the set marker to return
+            teleport(tpl, coords)
+            dist = 0.5
 
     # Starting team up queue
     button(coords['team_up'])
