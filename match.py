@@ -23,41 +23,21 @@ def cardCount(tpl, coords):
             return 7-slot
 
 
-def checkHand(tpl, coords):
-    # This function identifies the order of the hand of cards pulled from the deck and returns it as a list of strings
-    # Predefining card array
-    hand = []
-    count = cardCount(tpl, coords)
-    print("{} cards".format(count))
-    start = coords['card_boxes']['start']
-    step = coords['card_boxes']['int']
-    for slot in range(count):
-        box = (start[0]+(step+1)*slot, start[1], start[2]+(step+1)*slot, start[3])
-        with mss.mss() as sct:
-            # Grabbing a picture of the location of the card in the hand
-            pic = sct.grab(mssMon(box))
+def checkHand(tpl):
+    # This fucntion constructs a hand containing the coordinates and identity of all cards pulled
+    # Predefining card dictionary
+    hand = {}
+    with mss.mss() as sct:
+        pic = sct.grap(mssMon(tpl['in_match']))
+    
+    pic = cv2.cvtColor(np.arrary(pic), cv2.COLOR_RGB2GRAY)
 
-        # Converting to grayscale for cv2 processing
-        pic = cv2.cvtColor(np.array(pic), cv2.COLOR_RGB2GRAY)
-
-        # Identifying the card
-        for card in tpl['cards'].keys():
-            if tplComp(pic, tpl['cards'][card]):
-                hand.append(card)
-                break
+    # Identifying the card
+    for card in tpl['cards'].keys():
+        coords = tplLocate(pic, tpl['cards'][card])
+        hand[card] = coords
     print(hand)
     return hand
-
-
-def selectCard(hand, coords, card):
-    # Returns the coordinates of a card in the hand
-    # If there are repeated cards, returns the first of the series
-    minC = coords['card_points']['0'][0]
-    step = coords['card_points']['1'][0] - minC
-    index = hand.index(card)
-    handMax = 7
-    coords = (minC + index*step + (handMax - len(hand))*70/2, 455)
-    return coords
 
 
 def waitRound(tpl, coords):
@@ -105,96 +85,78 @@ def identifyBoss(tpl, coords):
     return 0
 
 
-def cleanHand(hand, tpl, coords):
+def cleanHand(hand, tpl):
     # Cleans hand by applying all enchantments
     # If a trap enchantment is present
-    while 'trap_e' in hand:
+    while 'trap_e' in hand.keys():
         # And a trap can be enchanted
-        if 'trap' in hand:
+        if 'trap' in hand.keys():
             # Enchanting trap
-            button(selectCard(hand, coords, 'trap_e'))
-            button(selectCard(hand, coords, 'trap'))
+            button(hand['trap_e'][0])
+            button(hand['trap'][0])
             # Update hand
-            hand = checkHand(tpl, coords)
+            hand = checkHand(tpl)
         else:
             break
 
     # Same for blade
-    while 'blade_e' in hand:
-        if 'blade' in hand:
+    while 'blade_e' in hand.keys():
+        if 'blade' in hand.keys():
             # Enchanting blade
-            button(selectCard(hand, coords, 'blade_e'))
-            button(selectCard(hand, coords, 'blade'))
+            button(hand['blade_e'][0])
+            button(hand['blade'][0])
             # Update hand
-            hand = checkHand(tpl, coords)
+            hand = checkHand(tpl)
         else:
             break
 
     # Same for hit
-    while 'hit_e' in hand:
-        if 'hit' in hand:
+    while 'hit_e' in hand.keys():
+        if 'hit' in hand.keys():
             # Enchanting hit
-            button(selectCard(hand, coords, 'hit_e'))
-            button(selectCard(hand, coords, 'hit'))
+            button(hand['hit_e'][0])
+            button(hand['hit'][0])
             # Update hand
-            hand = checkHand(tpl, coords)
+            hand = checkHand(tpl)
         else:
             break
     return hand
 
 
-def castSpell(hand, spell, tpl, coords, target):
+def castSpell(tpl, spell, target):
     # Casts a spell (string) from the hand (list) at the target (screen coordinates)
-    # Starts by cleaning hand
-    hand = cleanHand(hand, tpl, coords)
+    # Starts by checking and cleaning hand
+    hand = checkHand(tpl)
+    hand = cleanHand(hand, tpl)
+
+    # Selecting spell
     print("Casting {}".format(spell))
-    button(selectCard(hand, coords, spell))
-    # Hit-all spells are target-less
+    button(hand[spell])
+
+    # Select a target for the spell if it requires one
     if target:
         button(target)
-    # Update hand
-    hand = checkHand(tpl, coords)
-    return hand
+
+    return
 
 
-def playMatch(tpl, coords):
+def playMatch(tpl, coords, spell_logic):
     # Waiting for round to begin
     waitRound(tpl, coords)
 
     # Identifying unit positions
     player, position = identifyPlayer(tpl, coords)
     boss = identifyBoss(tpl, coords)
+    target = {
+        'player': player,
+        'boss': boss,
+    }
 
-    # Analyzing hand
-    hand = checkHand(tpl, coords)
-
-    # Cast enchanted blade
-    hand = castSpell(hand, 'e_blade', tpl, coords, player)
-    # Wait for round
-    if waitRound(tpl, coords):
-        leaveMatch(position)
-        return
-
-    # Cast enchanted hit
-    hand = castSpell(hand, 'e_hit', tpl, coords, 0)
-    # Wait for round
-    if waitRound(tpl, coords):
-        leaveMatch(position)
-        return
-
-    # Cast blade
-    hand = castSpell(hand, 'blade', tpl, coords, player)
-    # Wait for round
-    if waitRound(tpl, coords):
-        leaveMatch(position)
-        return
-
-    # Cast enchanted hit
-    hand = castSpell(hand, 'e_hit', tpl, coords, 0)
-    # Wait for round
-    if waitRound(tpl, coords):
-        leaveMatch(position)
-        return
+    for spell in spell_logic:
+        castSpell(tpl, spell[0], target[spell[1]])
+        if waitRound(tpl, coords):
+            leaveMatch(position)
+            return
 
     leaveMatch(position)
     return
@@ -251,4 +213,10 @@ def autoLore(runtime):
         while not checkLocation(tpl['in_client']):
             pass
         startMatch(tpl, coords)
-        playMatch(tpl, coords)
+        spell_logic = [
+            ('e_blade', 'player'),
+            ('e_hit', 0),
+            ('blade', 'player'),
+            ('e_hit', 0)
+        ]
+        playMatch(tpl, coords, spell_logic)

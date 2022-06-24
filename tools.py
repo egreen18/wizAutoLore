@@ -29,6 +29,24 @@ def tplComp(image, tpl):
         return 0
 
 
+def tplLocate(image, tpl):
+    # This function returns the center coordinates of the location of a template identified in an image
+    # Can return a list of coordinates if a tempalte appears multiple times
+    res = cv2.matchTemplate(image, tpl, cv2.TM_CCOEFF_NORMED)
+
+    # Specify a threshold
+    threshold = 0.8
+
+    # Store the coordinates of matched area in a numpy array
+    loc = np.where(res >= threshold)
+
+    coord = []
+    for found in loc:
+        coord.append(np.average(found))
+
+    return coord
+
+
 def checkLocation(tpl, loc=0):
     # Checks a location on the screen for a template
     # If no location is given, checks entire screen
