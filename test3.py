@@ -1,4 +1,3 @@
-import pickle
-count = 0
-with open('runCount.pkl', 'wb') as file:
-    pickle.dump(count, file)
+a = (1,2)
+if a:
+    print(a)

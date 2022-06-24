@@ -221,7 +221,10 @@ def selectCard(hand, coords, card):
     # If there are repeated cards, returns the first of the series
     minC = coords['card_points']['0'][0]
     step = coords['card_points']['1'][0] - minC
-    index = hand.index(card)
+    if card in hand:
+        index = hand.index(card)
+    else:
+        return 0
     handMax = 7
     coords = (minC + index*step + (handMax - len(hand))*70/2, 455)
     return coords
@@ -313,12 +316,24 @@ def cleanHand(hand, tpl, coords):
     return hand
 
 
+def passRound(coords):
+    button(coords['pass'])
+
+
 def castSpell(hand, spell, coords, tpl, target):
     # Casts a spell (string) from the hand (list) at the target (screen coordinates)
     # Starts by cleaning hand
     hand = cleanHand(hand, tpl, coords)
+
+    # Making sure that card is in hand and passing else
+    if not selectCard(hand, coords, spell):
+        passRound(coords)
+        return hand
+
+    # Selecting spell
     button(selectCard(hand, coords, spell))
-    # Hit-all spells are target-less
+
+    # Selecting target if applicable
     if target:
         button(target)
     # Update hand
