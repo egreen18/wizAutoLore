@@ -1,3 +1,5 @@
-range = 5
-range += 1
-print(range)
+a = [
+    (1, 2),
+    (3, 4)
+]
+print(a[0][1])
