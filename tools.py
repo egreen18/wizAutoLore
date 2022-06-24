@@ -5,6 +5,7 @@ import mss
 import os.path as os
 import numpy as np
 import time
+import pickle
 
 
 def mssMon(shape):
@@ -306,7 +307,6 @@ def castSpell(hand, spell, coords, tpl, target):
     # Casts a spell (string) from the hand (list) at the target (screen coordinates)
     # Starts by cleaning hand
     hand = cleanHand(hand, tpl, coords)
-    print("Casting {}".format(spell))
     button(selectCard(hand, coords, spell))
     # Hit-all spells are target-less
     if target:
@@ -354,6 +354,10 @@ def playMatch(tpl, coords):
     if waitRound(tpl, coords):
         leaveMatch(position)
         return
+
+    # Will pass until game is over
+    while not checkLocation(tpl['in_client']):
+        pass
 
     leaveMatch(position)
     return
@@ -413,4 +417,10 @@ def autoLore(runtime):
             pass
         startMatch(tpl, coords)
         playMatch(tpl, coords)
+        with open('runCount.pkl', 'rb') as file:
+            count = pickle.load(file)
+        count += 1
+        print("{} runs completed".format(str(count)))
+        with open('runCount.pkl', 'wb') as file:
+            pickle.dump(count, file)
 
