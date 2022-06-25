@@ -306,6 +306,7 @@ def checkMana(coords, threshold):
     with mss.mss() as sct:
         pic = sct.grab(mssMon(coords['mana']))
     blue = np.array(pic)[:, :, 0]
+    if np.average(blue) < threshold:
         return 0
 
     return 1
