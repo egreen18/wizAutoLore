@@ -80,7 +80,7 @@ def loadCoords(os_res):
         }
         coords = {
             'health': (39, 718, 85, 734),
-            'mana': (104, 758, 142, 802),
+            'mana': (104, 758, 134, 768),
             'commons': (1214, 770),
             'in_match': (440, 400, 1030, 530),
             'team_up': (725, 790),
@@ -289,26 +289,23 @@ def getMana(tpl, coords):
         pass
 
     # Running around commons
-    while not checkMana(coords, threshold=109):
-        with auto.hold('a'):
+    while not checkMana(coords, 220):
+        with auto.hold('d'):
             with auto.hold('w'):
                 time.sleep(5)
+                # Re-centering in the commons occasionally or avoiding a failed teleport to the commons
+                button(coords['commons'])
 
     # Returning to loremaster
     teleport(tpl, coords)
     return
 
 
-def checkMana(coords, threshold=100):
-    # Moving out of the sigil to avoid blue interference
-    with auto.hold('w'):
-        time.sleep(2)
-
+def checkMana(coords, threshold):
+    # Checks the status of the mana globe
     with mss.mss() as sct:
         pic = sct.grab(mssMon(coords['mana']))
     blue = np.array(pic)[:, :, 0]
-    print(np.average(blue))
-    if np.average(blue) < threshold:
         return 0
 
     return 1
@@ -405,15 +402,15 @@ def playMatch(tpl, coords):
     # Analyzing hand
     hand = checkHand(tpl, coords)
 
-    # Cast enchanted blade
-    hand = castSpell(hand, 'e_blade', coords, tpl, player)
+    # Cast enchanted hit
+    hand = castSpell(hand, 'e_hit', coords, tpl, 0)
     # Wait for round
     if waitRound(tpl, coords):
         leaveMatch(position)
         return
 
-    # Cast enchanted hit
-    hand = castSpell(hand, 'e_hit', coords, tpl, 0)
+    # Cast enchanted blade
+    hand = castSpell(hand, 'e_blade', coords, tpl, player)
     # Wait for round
     if waitRound(tpl, coords):
         leaveMatch(position)
@@ -513,8 +510,8 @@ def autoLore(runtime):
         while not checkLocation(tpl['in_client']):
             pass
         checkHealth(coords)
-        # if not checkMana(coords):
-        #    getMana(tpl, coords)
+        if not checkMana(coords, 160):
+            getMana(tpl, coords)
         startMatch(tpl, coords)
         playMatch(tpl, coords)
         with open('runCount.pkl', 'rb') as file:
