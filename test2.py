@@ -4,5 +4,4 @@ auto.click()
 os_res = osResGen()
 tpl = loadTemplates(os_res)
 coords = loadCoords(os_res)
-if not checkMana(coords):
-    getMana(tpl, coords)
+checkMana(coords)

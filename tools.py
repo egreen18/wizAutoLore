@@ -80,7 +80,7 @@ def loadCoords(os_res):
         }
         coords = {
             'health': (39, 718, 85, 734),
-            'mana': (104, 758, 135, 768),
+            'mana': (104, 758, 142, 802),
             'commons': (1214, 770),
             'in_match': (440, 400, 1030, 530),
             'team_up': (725, 790),
@@ -289,7 +289,7 @@ def getMana(tpl, coords):
         pass
 
     # Running around commons
-    while not checkMana(coords):
+    while not checkMana(coords, threshold=109):
         with auto.hold('a'):
             with auto.hold('w'):
                 time.sleep(5)
@@ -299,12 +299,16 @@ def getMana(tpl, coords):
     return
 
 
-def checkMana(coords):
+def checkMana(coords, threshold=100):
+    # Moving out of the sigil to avoid blue interference
+    with auto.hold('w'):
+        time.sleep(2)
+
     with mss.mss() as sct:
         pic = sct.grab(mssMon(coords['mana']))
     blue = np.array(pic)[:, :, 0]
-
-    if np.average(blue) < 210:
+    print(np.average(blue))
+    if np.average(blue) < threshold:
         return 0
 
     return 1
@@ -509,8 +513,8 @@ def autoLore(runtime):
         while not checkLocation(tpl['in_client']):
             pass
         checkHealth(coords)
-        if not checkMana(coords):
-            getMana(tpl, coords)
+        # if not checkMana(coords):
+        #    getMana(tpl, coords)
         startMatch(tpl, coords)
         playMatch(tpl, coords)
         with open('runCount.pkl', 'rb') as file:
