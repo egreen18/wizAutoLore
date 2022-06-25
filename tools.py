@@ -48,7 +48,7 @@ def tplLocate(tpl, image=0):
     result = cv2.matchTemplate(image, tpl, cv2.TM_CCOEFF_NORMED)
 
     # Defining threshold
-    threshold = 0.9
+    threshold = 0.8
 
     # Locating template
     (yCoords, xCoords) = np.where(result >= threshold)

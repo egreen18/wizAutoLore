@@ -23,21 +23,6 @@ def loadCoords(os_res):
         coords = {
         }
     elif os_res == 'mac_1440':
-        card_boxes = {
-            # At a full deck:
-            'start': (440, 400, 510, 500),  # At the deck card
-            'int': 70,                      # Horizontal length of a card
-            'end': (930, 400, 1000, 500),   # At the last cast
-        }
-        card_points = {
-            '0': (540, 455),
-            '1': (610, 455),
-            '2': (680, 455),
-            '3': (750, 455),
-            '4': (820, 455),
-            '5': (890, 455),
-            '6': (960, 455),
-        }
         player_boxes = {
             '0': (1110, 750, 1250, 820),
             '1': (820, 750, 940, 820),
@@ -71,8 +56,6 @@ def loadCoords(os_res):
             'team_up': (725, 790),
             'team_go': (710, 630),
             'pass': (530, 540),
-            'card_boxes': card_boxes,
-            'card_points': card_points,
             'player_boxes': player_boxes,
             'player_points': player_points,
             'enemy_boxes': enemy_boxes,

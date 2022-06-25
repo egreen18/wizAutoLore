@@ -1,5 +1,7 @@
-import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from initialize import *
 
-arr = np.array([1, 2, 3, 4])
-
-print(arr[:2])
+tpl, coords = initialize()
+imgplot = plt.imshow(tpl['cards']['hit_e'])
+plt.show()

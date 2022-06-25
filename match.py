@@ -6,16 +6,13 @@ def checkHand(tpl, coords):
     # This function constructs a hand containing the coordinates and identity of all cards pulled
     # Predefining card dictionary
     hand = {}
-    with mss.mss() as sct:
-        pic = sct.grab(mssMon(coords['in_match']))
-    
-    pic = cv2.cvtColor(np.array(pic), cv2.COLOR_RGB2GRAY)
 
-    # Identifying the card
+    # Moving mouse to a location that won't obscure hand
+    auto.moveTo(coords['team_up'])
     for card in tpl['cards'].keys():
-        points = tplLocate(pic, tpl['cards'][card])
-        if points:
-            hand[card] = points+np.array(coords['in_match'][:2])
+        point = tplLocate(tpl['cards'][card])
+        if point:
+            hand[card] = point
     print(hand)
     return hand
 
@@ -110,8 +107,7 @@ def castSpell(tpl, spell, target, coords):
     hand = cleanHand(hand, tpl, coords)
 
     # Selecting spell
-    print("Casting {}".format(spell))
-    button(hand[spell])
+    button(hand[spell][0])
 
     # Select a target for the spell if it requires one
     if target:
@@ -130,6 +126,7 @@ def playMatch(tpl, coords, spell_logic):
     target = {
         'player': player,
         'boss': boss,
+        0: 0,
     }
 
     for spell in spell_logic:
@@ -181,8 +178,9 @@ def leaveMatch(position):
             time.sleep(2.5)
 
 
-def autoLore(runtime):
+def autoLore(runtime, spell_logic):
     # Automatically runs loremaster battles for a given runtime in seconds
+    # Takes spell logic as a list of lists containing spells casted and their targets in desired order
 
     # Initialization
     now = time.time()
@@ -193,10 +191,4 @@ def autoLore(runtime):
         while not checkLocation(tpl['in_client']):
             pass
         startMatch(tpl, coords)
-        spell_logic = [
-            ('e_blade', 'player'),
-            ('e_hit', 0),
-            ('blade', 'player'),
-            ('e_hit', 0)
-        ]
         playMatch(tpl, coords, spell_logic)
