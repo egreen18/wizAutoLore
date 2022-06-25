@@ -1,5 +1,2 @@
-from match import *
-time.sleep(1)
-tpl, coords = initialize()
-
-print(tplLocate(tpl['cards']['hit_e']))
+a = 'e_test'
+print(a[a.index('_')+1:])
