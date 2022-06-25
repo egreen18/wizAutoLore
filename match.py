@@ -1,5 +1,6 @@
-from tools import *
 from initialize import *
+from client import *
+import pickle
 
 
 def checkHand(tpl, coords):
@@ -13,7 +14,6 @@ def checkHand(tpl, coords):
         point = tplLocate(tpl['cards'][card])
         if point:
             hand[card] = point
-    print(hand)
     return hand
 
 
@@ -186,9 +186,18 @@ def autoLore(runtime, spell_logic):
     now = time.time()
     tpl, coords = initialize()
 
-    while time.time() < now+runtime:
+    while time.time() < now + runtime:
         # Waiting to make sure that client is open
         while not checkLocation(tpl['in_client']):
             pass
+        checkHealth(coords)
+        if not checkMana(coords, 160):
+            getMana(tpl, coords)
         startMatch(tpl, coords)
         playMatch(tpl, coords, spell_logic)
+        with open('runCount.pkl', 'rb') as file:
+            count = pickle.load(file)
+        count += 1
+        print("{} runs completed".format(str(count)))
+        with open('runCount.pkl', 'wb') as file:
+            pickle.dump(count, file)

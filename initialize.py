@@ -52,10 +52,15 @@ def loadCoords(os_res):
 
         }
         coords = {
+            'health': (39, 718, 85, 734),
+            'mana': (104, 758, 134, 768),
+            'commons': (1214, 770),
             'in_match': (440, 400, 1030, 530),
             'team_up': (725, 790),
             'team_go': (710, 630),
             'pass': (530, 540),
+            'teleport': (1295, 770),
+            'mark': (1268, 786),
             'player_boxes': player_boxes,
             'player_points': player_points,
             'enemy_boxes': enemy_boxes,
