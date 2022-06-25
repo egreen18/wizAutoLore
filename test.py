@@ -1,11 +1,6 @@
-from match import *
-time.sleep(1)
-tpl, coords = initialize()
-spell_logic = [
-    ('e_hit', 0),
-    ('e_blade', 'player'),
-    ('blade', 'player'),
-    ('e_hit', 0)
+from tools import *
 
-]
-playMatch(tpl, coords, spell_logic)
+time.sleep(2)
+auto.click()
+runtime = 100000
+autoLore(runtime)
