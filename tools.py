@@ -3,6 +3,7 @@ import cv2
 import mss
 import numpy as np
 import time
+from imutils.object_detection import non_max_suppression
 
 
 def mssMon(shape):
@@ -29,23 +30,44 @@ def tplComp(image, tpl):
         return 0
 
 
-def tplLocate(image, tpl):
+def tplLocate(tpl, image=0):
     # This function returns the center coordinates of the location of a template identified in an image
+    # Coordinates are with respect to the image, not necessarily the entire screen
+    # Takes images in BGRx or BGR format
     # Can return a list of coordinates if a template appears multiple times
-    res = cv2.matchTemplate(image, tpl, cv2.TM_CCOEFF_NORMED)
 
-    # Specify a threshold
-    threshold = 0.8
+    # By default, takes a screenshot of the entire screen if no image is provided
+    if not image:
+        with mss.mss() as sct:
+            image = sct.grab(sct.monitors[1])
 
-    # Store the coordinates of matched area in a numpy array
-    loc = np.where(res >= threshold)
+    # Pulling the blue space of the images to allow for distinction between enchanted and non-enchanted cards
+    image = np.array(image)[:, :, 0]
 
-    coord = []
-    for found in loc:
-        if found.any():
-            coord.append(np.average(found))
+    # Matching template to image
+    result = cv2.matchTemplate(image, tpl, cv2.TM_CCOEFF_NORMED)
 
-    return coord
+    # Defining threshold
+    threshold = 0.9
+
+    # Locating template
+    (yCoords, xCoords) = np.where(result >= threshold)
+
+    # Finding bounding boxes
+    rects = []
+    (tH, tW) = tpl.shape
+    for (x, y) in zip(xCoords, yCoords):
+        # update our list of rectangles
+        rects.append((x, y, x + tW, y + tH))
+
+    # Apply non-maxima suppression to the rectangles
+    pick = non_max_suppression(np.array(rects))
+
+    points = []
+    for box in pick:
+        points.append(((box[0]+tW/2)*1440/2880, (box[1]+tH/2)*900/1800))
+
+    return points
 
 
 def checkLocation(tpl, loc=0):

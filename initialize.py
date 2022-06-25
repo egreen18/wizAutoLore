@@ -81,23 +81,26 @@ def loadCoords(os_res):
         return coords
 
 
-def loadImage(os_res, name):
-    return cv2.imread(os.join('templates', os_res, name))
+def loadImage(os_res, name, card=0):
+    if not card:
+        return cv2.imread(os.join('templates', os_res, name))
+    elif card:
+        return cv2.imread(os.join('templates', os_res, 'cards', name))
 
 
 def loadTemplates(os_res):
     # This function loads arrow templates into the workspace
     # Loading templates
     cards = {
-        'blade':        loadImage(os_res, 'blade_tpl.png'),
-        'blade_e':      loadImage(os_res, 'blade_e_tpl.png'),
-        'e_blade':      loadImage(os_res, 'e_blade_tpl.png'),
-        'hit':          loadImage(os_res, 'hit_tpl.png'),
-        'hit_e':        loadImage(os_res, 'hit_e_tpl.png'),
-        'e_hit':        loadImage(os_res, 'e_hit_tpl.png'),
-        'trap':         loadImage(os_res, 'trap_tpl.png'),
-        'trap_e':       loadImage(os_res, 'trap_e_tpl.png'),
-        'e_trap':       loadImage(os_res, 'e_trap_tpl.png'),
+        'blade':        loadImage(os_res, 'blade_tpl.png', 1),
+        'blade_e':      loadImage(os_res, 'blade_e_tpl.png', 1),
+        'e_blade':      loadImage(os_res, 'e_blade_tpl.png', 1),
+        'hit':          loadImage(os_res, 'hit_tpl.png', 1),
+        'hit_e':        loadImage(os_res, 'hit_e_tpl.png', 1),
+        'e_hit':        loadImage(os_res, 'e_hit_tpl.png', 1),
+        'trap':         loadImage(os_res, 'trap_tpl.png', 1),
+        'trap_e':       loadImage(os_res, 'trap_e_tpl.png', 1),
+        'e_trap':       loadImage(os_res, 'e_trap_tpl.png', 1),
     }
     templates = {
         'cards':        cards,
@@ -112,8 +115,10 @@ def loadTemplates(os_res):
     for tpl in templates.keys():
         if tpl == 'cards':
             for card in templates['cards'].keys():
-                templates['cards'][card] = cv2.cvtColor(np.array(templates['cards'][card]), cv2.COLOR_BGR2GRAY)
+                # Taking the blue space of the image to allow for distinction between enchanted and non-enchanted spells
+                templates['cards'][card] = np.array(templates['cards'][card])[:, :, 0]
         else:
+            # Taking the grayscale in all other cases
             templates[tpl] = cv2.cvtColor(np.array(templates[tpl]), cv2.COLOR_BGR2GRAY)
 
     return templates
