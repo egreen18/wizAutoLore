@@ -63,9 +63,14 @@ def tplLocate(tpl, image=0):
     # Apply non-maxima suppression to the rectangles
     pick = non_max_suppression(np.array(rects))
 
+    # Getting resolution information
+    comp_res = auto.size()
+    image_res = image.shape
+
+    # Adjusting for resolution differences between screenshot and mouse coordinate plane
     points = []
     for box in pick:
-        points.append(((box[0]+tW/2)*1440/2880, (box[1]+tH/2)*900/1800))
+        points.append(((box[0]+tW/2)*comp_res[0]/image_res[1], (box[1]+tH/2)*comp_res[1]/image_res[0]))
 
     return points
 
@@ -74,6 +79,7 @@ def checkLocation(tpl, loc=0):
     # Checks a location on the screen for a template
     # If no location is given, checks entire screen
     # Provide location (loc) in the upper left lower right coordinate box format
+
     # Pulling screenshot
     if loc:
         with mss.mss() as sct:
