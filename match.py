@@ -111,7 +111,7 @@ def castSpell(tpl, spell, target, coords):
     # Selecting spell
     if spell in hand.keys():
         button(hand[spell][0])
-    # Or passing if the spell is not in hand for some reason 
+    # Or passing if the spell is not in hand for some reason
     else:
         passRound(coords)
 
