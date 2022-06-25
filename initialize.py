@@ -20,7 +20,48 @@ def osResGen():
 def loadCoords(os_res):
     coords = {}
     if os_res == 'pc_1680':
+        player_boxes = {
+            '0': (),
+            '1': (),
+            '2': (),
+            '3': (),
+
+        }
+        player_points = {
+            '0': (),
+            '1': (),
+            '2': (),
+            '3': (),
+
+        }
+        enemy_boxes = {
+            '0': (),
+            '1': (),
+            '2': (),
+            '3': (),
+
+        }
+        enemy_points = {
+            '0': (),
+            '1': (),
+            '2': (),
+            '3': (),
+
+        }
         coords = {
+            'health': (46, 905, 121, 926),
+            'mana': (138, 964, 181, 976),
+            'commons': (1603, 975),
+            'in_match': (570, 450, 1341, 596),
+            'team_up': (959, 1011),
+            'team_go': (964, 786),
+            'pass': (696, 655),
+            'teleport': (1731, 984),
+            'mark': (1689, 999),
+            'player_boxes': player_boxes,
+            'player_points': player_points,
+            'enemy_boxes': enemy_boxes,
+            'enemy_points': enemy_points,
         }
     elif os_res == 'mac_1440':
         player_boxes = {
