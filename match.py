@@ -64,54 +64,44 @@ def identifyBoss(tpl, coords):
     return 0
 
 
-def cleanHand(hand, tpl, coords):
-    # Cleans hand by applying all enchantments
-    # If a trap enchantment is present
-    while 'trap_e' in hand.keys():
-        # And a trap can be enchanted
-        if 'trap' in hand.keys():
-            # Enchanting trap
-            button(hand['trap_e'][0])
-            button(hand['trap'][0])
-            # Update hand
-            hand = checkHand(tpl, coords)
-        else:
-            break
+def enchant(hand, spell, tpl, coords):
+    # Enchants a spell when requested by the spell logic
+    # Checks to see if spell enchantment is in hand
+    base = spell[spell.index('_')+1:]
+    if base+'_e' in hand:
+        # Enchanting spell
+        button(hand[base+'_e'][0])
+        button(hand[base][0])
 
-    # Same for blade
-    while 'blade_e' in hand.keys():
-        if 'blade' in hand.keys():
-            # Enchanting blade
-            button(hand['blade_e'][0])
-            button(hand['blade'][0])
-            # Update hand
-            hand = checkHand(tpl, coords)
-        else:
-            break
+        # Updating hand
+        hand = checkHand(tpl, coords)
 
-    # Same for hit
-    while 'hit_e' in hand.keys():
-        if 'hit' in hand.keys():
-            # Enchanting hit
-            button(hand['hit_e'][0])
-            button(hand['hit'][0])
-            # Update hand
-            hand = checkHand(tpl, coords)
-        else:
-            break
-    return hand
+        # Successful indicator
+        status = 1
+
+    # If enchantment is not available, notify castSpell to cast unenchanted spell instead
+    else:
+        status = 0
+    return hand, status
 
 
 def castSpell(tpl, spell, target, coords):
     # Casts a spell (string) from the hand (list) at the target (screen coordinates)
-    # Starts by checking and cleaning hand
+    # Starts by constructing hand
     hand = checkHand(tpl, coords)
-    hand = cleanHand(hand, tpl, coords)
+
+    # Checks for the need to enchant a spell
+    # Is the request enchanted? Is the enchant in the hand? Is the base spell in the hand?
+    if 'e_' in spell and spell not in hand and spell[spell.index('_')+1:] in hand:
+        hand, status = enchant(hand, spell, tpl, coords)
+        if not status:
+            # Casting unenchanted spell instead if enchant is unavailable
+            spell = spell[spell.index('_')+1:]
 
     # Selecting spell
     if spell in hand.keys():
         button(hand[spell][0])
-    # Or passing if the spell is not in hand for some reason 
+    # Or passing if the spell is not in hand for some reason
     else:
         passRound(coords)
 
