@@ -27,6 +27,8 @@ def waitRound(tpl, coords):
     time.sleep(0.5)  # Waiting some time after round begins to let everything initialize in game
     return 0
 
+def passRound(coords):
+    button(coords['pass'])
 
 def identifyPlayer(tpl, coords):
     # Identifies the players position based off of their name
@@ -107,7 +109,11 @@ def castSpell(tpl, spell, target, coords):
     hand = cleanHand(hand, tpl, coords)
 
     # Selecting spell
-    button(hand[spell][0])
+    if spell in hand.keys():
+        button(hand[spell][0])
+    # Or passing if the spell is not in hand for some reason 
+    else:
+        passRound(coords)
 
     # Select a target for the spell if it requires one
     if target:
