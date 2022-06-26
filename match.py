@@ -1,6 +1,7 @@
 from initialize import *
 from client import *
 import pickle
+from datetime import datetime
 
 
 def checkHand(tpl, coords):
@@ -194,6 +195,9 @@ def autoLore(runtime, spell_logic):
         with open('runCount.pkl', 'rb') as file:
             count = pickle.load(file)
         count += 1
-        print("{} runs completed".format(str(count)))
+        current = datetime.now()
+        current_time = current.strftime("%H:%M:%S")
+        print("{} runs completed at {}".format(str(count), str(current_time)))
         with open('runCount.pkl', 'wb') as file:
             pickle.dump(count, file)
+

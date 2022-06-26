@@ -1,5 +1,5 @@
-import pickle
-with open('runCount.pkl', 'rb') as file:
-    count = pickle.load(file)
-count += 1
-print("{} runs completed".format(str(count)))
+from datetime import datetime
+count = 1
+now = datetime.now()
+current_time = now.strftime("%H:%M:%S")
+print("{} runs completed at {}".format(str(count), str(current_time)))
