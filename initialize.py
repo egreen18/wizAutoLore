@@ -19,7 +19,7 @@ def osResGen():
 
 def loadCoords(os_res):
     coords = {}
-    if os_res == 'pc_1680':
+    if os_res == 'pc_1920':
         player_boxes = {
             '0': (1523, 980, 1664, 1002),
             '1': (1105, 980, 1252, 1009),
