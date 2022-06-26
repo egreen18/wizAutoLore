@@ -10,7 +10,8 @@ spell_logic = [
     ('e_hit', 0),
     ('e_blade', 'player'),
     ('blade', 'player'),
-    ('e_hit', 0)
+    ('e_hit', 0),
 
 ]
-playMatch(tpl, coords, spell_logic)
+boss = identifyBoss(tpl, coords)
+print(boss)

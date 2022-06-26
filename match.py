@@ -45,7 +45,7 @@ def identifyPlayer(tpl, coords):
             # Checking to see if player is in that position
             if tplComp(pic, tpl['player']):
                 return coords['player_points'][position], position
-    return 0
+    return 0, 0
 
 
 def identifyBoss(tpl, coords):
