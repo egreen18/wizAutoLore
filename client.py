@@ -52,8 +52,16 @@ def checkHealth(coords):
 def teleport(tpl, coords):
     button(coords['teleport'])
     # Waiting for client to load after teleporting
+    now = time.time()
+
+    # Waiting for loading screen to start
     while checkLocation(tpl['in_client']):
+        # Breaking out of this restriction, sometimes teleports don't trigger a loading screen
+        if time.time() > now+8:
+            break
         pass
+
+    # Waiting for loading screen to end
     while not checkLocation(tpl['in_client']):
         pass
     time.sleep(2)

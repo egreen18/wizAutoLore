@@ -28,8 +28,10 @@ def waitRound(tpl, coords):
     time.sleep(0.5)  # Waiting some time after round begins to let everything initialize in game
     return 0
 
+
 def passRound(coords):
     button(coords['pass'])
+
 
 def identifyPlayer(tpl, coords):
     # Identifies the players position based off of their name
@@ -140,16 +142,26 @@ def startMatch(tpl, coords):
     dist = 0.5
     while not checkLocation(tpl['team_up']):
         jigglePlayer(dist)
-        dist += 0.02  # Increasing the intensity of the player jiggle to try and catch the team up button on screen
+        # Increasing the intensity of the player jiggle to try and catch the team up button on screen
+        dist += 0.02
         time.sleep(dist)
+
+        # If this fails, teleport to the mark in front of the sigil
+        if dist >= 0.6:
+            teleport(tpl, coords)
+            dist = 0.5
 
     # Starting team up queue
     button(coords['team_up'])
     button(coords['team_go'])
+    now = time.time()
     with auto.hold('w'):
         while not checkLocation(tpl['in_match'], coords['in_match']):
-            pass
-    return
+            # If three minutes have elapsed, restart the process of starting the match
+            # This could be because something went wrong or because no one joined the team up queue
+            if time.time() > now+30:
+                return 0
+    return 1
 
 
 def leaveMatch(position):
@@ -190,7 +202,11 @@ def autoLore(runtime, spell_logic):
         checkHealth(coords)
         if not checkMana(coords, 160):
             getMana(tpl, coords)
-        startMatch(tpl, coords)
+        # Tries to start match, if failed, returns 0 and triggers while loop that tries repeatedly until success
+        while not startMatch(tpl, coords):
+            if startMatch(tpl, coords):
+                # Breaking out of the attempt loop if the match started so that it does not try again
+                break
         playMatch(tpl, coords, spell_logic)
         with open('runCount.pkl', 'rb') as file:
             count = pickle.load(file)
