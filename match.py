@@ -159,7 +159,7 @@ def startMatch(tpl, coords):
         while not checkLocation(tpl['in_match'], coords['in_match']):
             # If three minutes have elapsed, restart the process of starting the match
             # This could be because something went wrong or because no one joined the team up queue
-            if time.time() > now+30:
+            if time.time() > now+150:
                 return 0
     return 1
 
