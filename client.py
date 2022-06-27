@@ -40,11 +40,15 @@ def checkHealth(coords):
         pic = sct.grab(mssMon(coords['health']))
     red = np.array(pic)[:, :, 2]
 
+    now = time.time()
     while np.average(red) < 200:
         time.sleep(5)
         with mss.mss() as sct:
             pic = sct.grab(mssMon(coords['health']))
         red = np.array(pic)[:, :, 2]
+        # Breaking out of waiting loop in case the health is not being detected for some reason
+        if time.time() > now+120:
+            break
 
     return
 

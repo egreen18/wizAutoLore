@@ -202,11 +202,9 @@ def autoLore(runtime, spell_logic):
         checkHealth(coords)
         if not checkMana(coords, 160):
             getMana(tpl, coords)
-        # Tries to start match, if failed, returns 0 and triggers while loop that tries repeatedly until success
-        while not startMatch(tpl, coords):
-            if startMatch(tpl, coords):
-                # Breaking out of the attempt loop if the match started so that it does not try again
-                break
+        # Tries to start match, if failed, returns 0 and triggers a restart of the function
+        if not startMatch(tpl, coords):
+            autoLore(runtime, spell_logic)
         playMatch(tpl, coords, spell_logic)
         with open('runCount.pkl', 'rb') as file:
             count = pickle.load(file)
