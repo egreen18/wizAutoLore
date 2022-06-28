@@ -64,27 +64,32 @@ def getStat(stat, coords):
 
     # Grabbing the stat status and closing the character menu
     with mss.mss() as sct:
-        pic = sct.grab(mssMon(coords[stat]))
+        img = sct.grab(mssMon(coords[stat]))
     auto.press('c')
 
     # Processing the image of the mana status into string variable
-    text = pytesseract.image_to_string(np.array(pic))
-
+    img = np.array(img)
+    text = pytesseract.image_to_string(img)
+    print(text)
     # Checking to make sure mana was successfully interpreted
     if not text:
         # Return negative if failed
         return 0
 
     # Removing all non-numbers interpreted by tesseract from the string
-    text = re.sub("[^0-9 /]", "", text)
+    text = re.sub("[^0-9/]", "", text)
 
     # Finishing mana status analysis
-    print(text)
     text = text.split('/')
     statVal = []
     for num in text:
         statVal.append(int(num))
 
+    # Length failsafe
+    if len(statVal) != 2:
+        return 0
+
+    print(statVal)
     return statVal
 
 
@@ -93,12 +98,11 @@ def checkMana(coords, threshold):
     # Threshold is a value between 0 and 1
     mana = getStat('mana', coords)
 
-    # If getStat failed, try again
+    # If getStat failed, return a 1 to pass through and hope it succeeds next time lol
     if not mana:
-        checkMana(coords, threshold)
+        return 1
 
     # Checking if mana is above or below threshold
-    print(mana)
     if mana[0]/mana[1] < threshold:
         return 0
     else:
@@ -112,12 +116,12 @@ def checkHealth(coords, threshold):
     # Checking health
     health = getStat('health', coords)
 
-    # If getStat failed, try again
+    # If getStat failed, return a 1 to pass through and hope it succeeds next time lol
+    # (second 0 is to make the object subscriptable)
     if not health:
-        checkHealth(coords, threshold)
+        return 1, 0
 
     # Checking if health is above or below threshold
-    print(health)
     if health[0] / health[1] < threshold:
         return 0, health[0]
     else:

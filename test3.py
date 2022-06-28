@@ -1,7 +1,3 @@
-def test():
-    return 0, 1
-
-
-if test()[1]:
-    print(1)
-
+a = [0, 0]
+if a:
+    print(a)
