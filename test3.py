@@ -1,3 +1,7 @@
-a = {'b': 1}
-if 'b' in a.keys():
-    print(a)
+def test():
+    return 0, 1
+
+
+if test()[1]:
+    print(1)
+

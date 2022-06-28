@@ -227,19 +227,29 @@ def autoLore(runtime, spell_logic):
         # Waiting to make sure that client is open
         while not checkLocation(tpl['in_client']):
             pass
-        checkHealth(coords)
-        if not checkMana(coords, 160):
+
+        # If health is below half, get health
+        if not checkHealth(coords, 0.5)[0]:
+            getHealth(tpl, coords)
+
+        # If mana is below half, get mana
+        if not checkMana(coords, 0.5):
             getMana(tpl, coords)
+
         # Tries to start match, if failed, returns 0 and triggers a restart of the function
         if not startMatch(tpl, coords):
             autoLore(runtime, spell_logic)
         playMatch(tpl, coords, spell_logic)
+
+        # Tracking the run count and time of completion
         with open('runCount.pkl', 'rb') as file:
             count = pickle.load(file)
         count += 1
         current = datetime.now()
         current_time = current.strftime("%H:%M:%S")
         print("{} runs completed at {}".format(str(count), str(current_time)))
+
+        # Saving the run count in a pickled file
         with open('runCount.pkl', 'wb') as file:
             pickle.dump(count, file)
 
