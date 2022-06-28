@@ -1,2 +1,2 @@
-imgplot = plt.imshow(img)
-plt.show()
+a = 'e_test'
+print(a[a.index('_')+1:])
