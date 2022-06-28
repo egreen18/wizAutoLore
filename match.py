@@ -199,7 +199,7 @@ def autoLore(runtime, spell_logic):
         # Waiting to make sure that client is open
         while not checkLocation(tpl['in_client']):
             pass
-        checkHealth(coords)
+        checkHealth(tpl, coords)
         if not checkMana(coords, 160):
             getMana(tpl, coords)
         # Tries to start match, if failed, returns 0 and triggers a restart of the function
