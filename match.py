@@ -139,6 +139,7 @@ def playMatch(tpl, coords, spell_logic):
 
 
 def startMatch(tpl, coords):
+    # Attempts to start match, returns 0 if failed
     dist = 0.5
     while not checkLocation(tpl['team_up']):
         jigglePlayer(dist)
@@ -149,7 +150,7 @@ def startMatch(tpl, coords):
         # If this fails, teleport to the mark in front of the sigil
         if dist >= 0.6:
             teleport(tpl, coords)
-            dist = 0.5
+            return 0
 
     # Starting team up queue
     button(coords['team_up'])
@@ -157,7 +158,7 @@ def startMatch(tpl, coords):
     now = time.time()
     with auto.hold('w'):
         while not checkLocation(tpl['in_match'], coords['in_match']):
-            # If three minutes have elapsed, restart the process of starting the match
+            # If a few minutes have elapsed, restart the process of starting the match
             # This could be because something went wrong or because no one joined the team up queue
             if time.time() > now+150:
                 return 0
