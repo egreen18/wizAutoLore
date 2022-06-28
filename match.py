@@ -90,6 +90,8 @@ def enchant(hand, spell, tpl, coords):
 
 def castSpell(tpl, spell, target, coords):
     # Casts a spell (string) from the hand (list) at the target (screen coordinates)
+    # Returns 1 if the spell is successfully casted or is not hand and cannot be cast
+    # Returns 0 if the match ends after an attempted spell cast
     # Starts by constructing hand
     hand = checkHand(tpl, coords)
 
@@ -102,9 +104,12 @@ def castSpell(tpl, spell, target, coords):
             spell = spell[spell.index('_')+1:]
 
     # Selecting spell
-    if spell in hand.keys():
+    original_count = 0
+    if spell in hand:
+        original_count = len(hand[spell])
         button(hand[spell][0])
-    # Or passing if the spell is not in hand for some reason
+
+    # Or passing if the spell is not in hand for some reason and ending attempt at casting spell
     else:
         passRound(coords)
 
@@ -112,7 +117,25 @@ def castSpell(tpl, spell, target, coords):
     if target:
         button(target)
 
-    return
+    # Fizzle protection - checking to see if a spell was successfully casted
+    # Waiting for the start of the next round, returning out of castSpell if the round ends because match ends
+    if waitRound(tpl, coords):
+        return 0
+
+    # Checking new hand to see if the card is missing, indicating successful cast
+
+    hand = checkHand(tpl, coords)
+    if spell not in hand:
+        novel_count = 0
+    else:
+        novel_count = len(hand[spell])
+
+    # If not missing, repeat the castSpell function to try again
+    if original_count-novel_count != 1:
+        castSpell(tpl, spell, target, coords)
+
+    # Finally, return positive if the function makes it to this point
+    return 1
 
 
 def playMatch(tpl, coords, spell_logic):
@@ -129,7 +152,11 @@ def playMatch(tpl, coords, spell_logic):
     }
 
     for spell in spell_logic:
-        castSpell(tpl, spell[0], target[spell[1]], coords)
+        if not castSpell(tpl, spell[0], target[spell[1]], coords):
+            # Leave match once the match is over
+            leaveMatch(position)
+            return
+        # Checking for the end of the match at each spell cast
         if waitRound(tpl, coords):
             leaveMatch(position)
             return
@@ -200,7 +227,7 @@ def autoLore(runtime, spell_logic):
         # Waiting to make sure that client is open
         while not checkLocation(tpl['in_client']):
             pass
-        checkHealth(tpl, coords)
+        checkHealth(coords)
         if not checkMana(coords, 160):
             getMana(tpl, coords)
         # Tries to start match, if failed, returns 0 and triggers a restart of the function

@@ -35,7 +35,7 @@ def checkMana(coords, threshold):
     return 1
 
 
-def checkHealth(tpl, coords):
+def checkHealth(coords):
     # Checking health
     with mss.mss() as sct:
         pic = sct.grab(mssMon(coords['health']))
@@ -49,7 +49,7 @@ def checkHealth(tpl, coords):
         red = np.array(pic)[:, :, 2]
         # Returning to commons if health is not regenerating; could be stuck in boss room
         if time.time() > now+120:
-            button(tpl['commons'])
+            button(coords['commons'])
 
     return
 
