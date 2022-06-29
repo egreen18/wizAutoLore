@@ -78,7 +78,11 @@ def teleport(tpl, coords):
     # Waiting for loading screen to end
     while not checkLocation(tpl['in_client']):
         pass
-    time.sleep(2)
+
+    # Waiting for mark timer to run out
+    while time.time() < now+30:
+        pass
+
     # Resetting mark
     button(coords['mark'])
     return
