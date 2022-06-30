@@ -4,6 +4,8 @@ from tools import *
 def getMana(tpl, coords):
     # Teleporting to commons to get mana orbs
     button(coords['commons'])
+    time.sleep(2)
+    button(coords['commons'])
 
     # Waiting for client to load after teleporting
     now = time.time()
@@ -25,8 +27,6 @@ def getMana(tpl, coords):
         with auto.hold('d'):
             with auto.hold('w'):
                 time.sleep(5)
-                # Re-centering in the commons occasionally or avoiding a failed teleport to the commons
-                button(coords['commons'])
 
     # Returning to loremaster
     teleport(tpl, coords)
