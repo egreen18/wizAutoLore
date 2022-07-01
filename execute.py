@@ -11,4 +11,5 @@ spell_logic = [
 
 ]
 mana = 0
-autoLore(runtime, spell_logic, mana)
+run_max = 125
+autoLore(runtime, run_max, spell_logic, mana)

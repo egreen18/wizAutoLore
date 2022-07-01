@@ -215,13 +215,14 @@ def leaveMatch(position):
             time.sleep(2.5)
 
 
-def autoLore(runtime, spell_logic, mana):
+def autoLore(runtime, run_max, spell_logic, mana):
     # Automatically runs loremaster battles for a given runtime in seconds
     # Takes spell logic as a list of lists containing spells casted and their targets in desired order
 
     # Initialization
     now = time.time()
     tpl, coords = initialize()
+    run = 0
 
     while time.time() < now + runtime:
         # Waiting to make sure that client is open
@@ -233,7 +234,7 @@ def autoLore(runtime, spell_logic, mana):
                 getMana(tpl, coords)
         # Tries to start match, if failed, returns 0 and triggers a restart of the function
         if not startMatch(tpl, coords):
-            autoLore(runtime, spell_logic, mana)
+            autoLore(runtime, run_max-run, spell_logic, mana)
         playMatch(tpl, coords, spell_logic)
         with open('runCount.pkl', 'rb') as file:
             count = pickle.load(file)
@@ -243,4 +244,7 @@ def autoLore(runtime, spell_logic, mana):
         print("{} runs completed at {}".format(str(count), str(current_time)))
         with open('runCount.pkl', 'wb') as file:
             pickle.dump(count, file)
-
+        run += 1
+        if run >= run_max:
+            print("Reached run maximum, terminated.")
+            return
