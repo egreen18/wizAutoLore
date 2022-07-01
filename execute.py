@@ -10,4 +10,5 @@ spell_logic = [
     ('e_hit', 0)
 
 ]
-autoLore(runtime, spell_logic)
+mana = 0
+autoLore(runtime, spell_logic, mana)

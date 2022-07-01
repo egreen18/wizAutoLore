@@ -215,7 +215,7 @@ def leaveMatch(position):
             time.sleep(2.5)
 
 
-def autoLore(runtime, spell_logic):
+def autoLore(runtime, spell_logic, mana):
     # Automatically runs loremaster battles for a given runtime in seconds
     # Takes spell logic as a list of lists containing spells casted and their targets in desired order
 
@@ -228,11 +228,12 @@ def autoLore(runtime, spell_logic):
         while not checkLocation(tpl['in_client']):
             pass
         checkHealth(coords)
-        if not checkMana(coords, 160):
-            getMana(tpl, coords)
+        if mana:
+            if not checkMana(coords, 160):
+                getMana(tpl, coords)
         # Tries to start match, if failed, returns 0 and triggers a restart of the function
         if not startMatch(tpl, coords):
-            autoLore(runtime, spell_logic)
+            autoLore(runtime, spell_logic, mana)
         playMatch(tpl, coords, spell_logic)
         with open('runCount.pkl', 'rb') as file:
             count = pickle.load(file)

@@ -12,7 +12,7 @@ def getMana(tpl, coords):
 
     # Waiting for loading screen to start
     while checkLocation(tpl['in_client']):
-        # Breaking out of this restriction, sometimes teleports don't trigger a loading screen or they fail
+        # Breaking out of this restriction, sometimes teleports don't trigger a loading screen, or they fail
         if time.time() > now + 8:
             break
         pass
